@@ -4,9 +4,6 @@ import styles from './favoritesStyles';
 import API from '../../assets/api';
 import WeatherCard from '../WeatherCard/WeatherCard';
 
-import accuweatherLogo from '../../assets/img/accuweather_logo.png';
-import accuweatherLogoDark from '../../assets/img/accuweather_logo_dark.png';
-
 class Favorites extends Component {
   state = {
     favoritesData: null,
@@ -60,7 +57,7 @@ class Favorites extends Component {
   };
 
   render() {
-    const { classes, theme } = this.props;
+    const { classes, onFavoriteCardClick } = this.props;
     const { favoritesData } = this.state;
 
     return (
@@ -70,26 +67,17 @@ class Favorites extends Component {
             return (
               <div key={index} className={classes.weatherCardWrapper}>
                 <WeatherCard
+                  onFavoriteIconClick={this.handleFavoriteIconClick}
                   locationData={entry.location}
                   forecast={entry.data[0]}
-                  onFavoriteIconClick={this.handleFavoriteIconClick}
+                  onWeatherCardClick={onFavoriteCardClick}
                 />
               </div>
             );
           })}
-        <a className={classes.logoContainer} href='http://www.accuweather.com/'>
-          <span className={classes.attribution}>Powered by</span>
-          <img
-            className={classes.logoImage}
-            src={
-              theme.palette.type === 'dark'
-                ? accuweatherLogoDark
-                : accuweatherLogo
-            }></img>
-        </a>
       </div>
     );
   }
 }
 
-export default withStyles(styles, { withTheme: true })(Favorites);
+export default withStyles(styles)(Favorites);

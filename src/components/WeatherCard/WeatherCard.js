@@ -50,7 +50,9 @@ class WeatherCard extends Component {
     this.setState({ isFavorite });
   }
 
-  handleFavoriteIconClick = () => {
+  handleFavoriteIconClick = (e) => {
+    e.stopPropagation();
+
     let { isFavorite } = this.state;
     const { locationData, onFavoriteIconClick } = this.props;
 
@@ -85,6 +87,14 @@ class WeatherCard extends Component {
     }
   };
 
+  handleCardClick = () => {
+    const { onWeatherCardClick, locationData } = this.props;
+
+    if (typeof onWeatherCardClick === 'function') {
+      onWeatherCardClick(locationData);
+    }
+  };
+
   render() {
     const { classes, forecast, locationData } = this.props;
     const { isFavorite } = this.state;
@@ -94,7 +104,7 @@ class WeatherCard extends Component {
     );
 
     return (
-      <Card className={classes.cardRoot}>
+      <Card className={classes.cardRoot} onClick={this.handleCardClick}>
         <CardHeader
           title={
             <div className={classes.headerTitle}>
