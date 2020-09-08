@@ -21,7 +21,7 @@ class WeatherCard extends Component {
     if (localStorage.getItem('favorites')) {
       const favorites = JSON.parse(localStorage.getItem('favorites'));
       favorites.forEach((location) => {
-        if (location.locationKey === this.props.selectedLocation.locationKey) {
+        if (location.locationKey === this.props.locationData.locationKey) {
           this.setState({ isFavorite: true });
         }
       });
@@ -31,8 +31,7 @@ class WeatherCard extends Component {
   componentDidUpdate(prevProps, prevState) {
     // Check if location has changed
     if (
-      prevProps.selectedLocation.locationKey ===
-      this.props.selectedLocation.locationKey
+      prevProps.locationData.locationKey === this.props.locationData.locationKey
     ) {
       return;
     }
@@ -42,7 +41,7 @@ class WeatherCard extends Component {
     if (localStorage.getItem('favorites')) {
       const favorites = JSON.parse(localStorage.getItem('favorites'));
       favorites.forEach((location) => {
-        if (location.locationKey === this.props.selectedLocation.locationKey) {
+        if (location.locationKey === this.props.locationData.locationKey) {
           isFavorite = true;
         }
       });
@@ -53,7 +52,7 @@ class WeatherCard extends Component {
 
   handleFavoriteIconClick = () => {
     let { isFavorite } = this.state;
-    const { selectedLocation } = this.props;
+    const { locationData, onFavoriteIconClick } = this.props;
 
     // Remove from favorites if it already is
     if (isFavorite) {
@@ -61,7 +60,7 @@ class WeatherCard extends Component {
         const favorites = JSON.parse(localStorage.getItem('favorites'));
 
         const newFavorites = favorites.filter(
-          (location) => location.locationKey !== selectedLocation.locationKey
+          (location) => location.locationKey !== locationData.locationKey
         );
 
         localStorage.setItem('favorites', JSON.stringify(newFavorites));
@@ -74,15 +73,20 @@ class WeatherCard extends Component {
         favorites = JSON.parse(localStorage.getItem('favorites'));
       }
 
-      favorites.push(selectedLocation);
+      favorites.push(locationData);
       localStorage.setItem('favorites', JSON.stringify(favorites));
     }
 
     this.setState({ isFavorite: !isFavorite });
+
+    // Call hook callback function
+    if (typeof onFavoriteIconClick === 'function') {
+      onFavoriteIconClick(locationData.locationKey);
+    }
   };
 
   render() {
-    const { classes, hourlyForecast, selectedLocation } = this.props;
+    const { classes, forecast, locationData } = this.props;
     const { isFavorite } = this.state;
 
     const images = importAll(
@@ -95,11 +99,11 @@ class WeatherCard extends Component {
           title={
             <div className={classes.headerTitle}>
               <Typography className={classes.textShadow} variant='h4'>
-                {hourlyForecast.IconPhrase}
+                {forecast.IconPhrase}
               </Typography>
               <img
                 height='80'
-                src={images[`icon${hourlyForecast.WeatherIcon}.png`]}></img>
+                src={images[`icon${forecast.WeatherIcon}.png`]}></img>
             </div>
           }
         />
@@ -107,8 +111,10 @@ class WeatherCard extends Component {
           <Typography
             variant='h5'
             className={`${classes.textShadow} ${classes.city}`}>
-            {selectedLocation.name}
-            <Tooltip title='Add location to favorites' enterDelay={500}>
+            {locationData.name}
+            <Tooltip
+              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              enterDelay={500}>
               <IconButton
                 className={classes.favoriteIcon}
                 style={{ color: isFavorite ? '#ff0060' : null }}
@@ -118,12 +124,11 @@ class WeatherCard extends Component {
             </Tooltip>
           </Typography>
           <Typography variant='h6' className={classes.date}>
-            {formatDate(hourlyForecast.DateTime)}
+            {formatDate(forecast.DateTime)}
           </Typography>
           <br></br>
           <Typography variant='h2' className={classes.textShadow}>
-            {hourlyForecast.Temperature &&
-              hourlyForecast.Temperature.Value + '˚c'}
+            {forecast.Temperature && forecast.Temperature.Value + '˚c'}
           </Typography>
         </CardContent>
       </Card>

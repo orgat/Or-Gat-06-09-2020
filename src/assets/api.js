@@ -1,5 +1,5 @@
 export default {
-  key: 'AhUaVPGWod1l9qb4otSnAHyWHAtyqhZ3',
+  key: '5WpMhA4b6fmIVMPiJBQieLBP6I25ZwM7',
   autocompleteBaseUrl:
     'http://dataservice.accuweather.com/locations/v1/cities/autocomplete',
   hourlyForecastBaseUrl:

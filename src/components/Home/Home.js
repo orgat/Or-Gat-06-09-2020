@@ -8,6 +8,8 @@ import WeatherCard from '../WeatherCard/WeatherCard';
 import styles from './homeStyles';
 import WeatherCardSmall from '../WeatherCardSmall/WeatherCardSmall';
 import API from '../../assets/api';
+import accuweatherLogo from '../../assets/img/accuweather_logo.png';
+import accuweatherLogoDark from '../../assets/img/accuweather_logo_dark.png';
 
 export class Home extends Component {
   constructor(props) {
@@ -173,7 +175,7 @@ export class Home extends Component {
   };
 
   render() {
-    const { classes } = this.props;
+    const { classes, theme } = this.props;
     const {
       autocompleteSuggestions,
       hourlyForecast,
@@ -181,7 +183,7 @@ export class Home extends Component {
       selectedLocation,
       errorToast,
     } = this.state;
-
+    console.log('props', this.props);
     return (
       <div className={classes.mainContainer}>
         <div className={classes.autocompleteContainer}>
@@ -207,8 +209,8 @@ export class Home extends Component {
           <Fragment>
             <div className={classes.weatherCardContainer}>
               <WeatherCard
-                selectedLocation={selectedLocation}
-                hourlyForecast={hourlyForecast}
+                locationData={selectedLocation}
+                forecast={hourlyForecast}
               />
             </div>
 
@@ -233,9 +235,20 @@ export class Home extends Component {
           onClose={this.handleToastClose}>
           <Alert severity='error'>{errorToast.message}</Alert>
         </Snackbar>
+
+        <a className={classes.logoContainer} href='http://www.accuweather.com/'>
+          <span className={classes.attribution}>Powered by</span>
+          <img
+            className={classes.logoImage}
+            src={
+              theme.palette.type === 'dark'
+                ? accuweatherLogoDark
+                : accuweatherLogo
+            }></img>
+        </a>
       </div>
     );
   }
 }
 
-export default withStyles(styles)(Home);
+export default withStyles(styles, { withTheme: true })(Home);

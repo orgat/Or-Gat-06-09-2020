@@ -1,7 +1,11 @@
 import React, { Component } from 'react';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, withTheme } from '@material-ui/core/styles';
 import styles from './favoritesStyles';
 import API from '../../assets/api';
+import WeatherCard from '../WeatherCard/WeatherCard';
+
+import accuweatherLogo from '../../assets/img/accuweather_logo.png';
+import accuweatherLogoDark from '../../assets/img/accuweather_logo_dark.png';
 
 class Favorites extends Component {
   state = {
@@ -45,10 +49,47 @@ class Favorites extends Component {
     return fetch(`${baseUrl}/${locationKey}?apikey=${key}&metric=true`);
   };
 
+  handleFavoriteIconClick = (locationKey) => {
+    const { favoritesData } = this.state;
+
+    const newFavoritesData = favoritesData.filter((entry) => {
+      return entry.location.locationKey !== locationKey;
+    });
+
+    this.setState({ favoritesData: newFavoritesData });
+  };
+
   render() {
-    console.log(this.state.favoritesData);
-    return <div></div>;
+    const { classes, theme } = this.props;
+    const { favoritesData } = this.state;
+
+    return (
+      <div className={classes.mainContainer}>
+        {favoritesData &&
+          favoritesData.map((entry, index) => {
+            return (
+              <div key={index} className={classes.weatherCardWrapper}>
+                <WeatherCard
+                  locationData={entry.location}
+                  forecast={entry.data[0]}
+                  onFavoriteIconClick={this.handleFavoriteIconClick}
+                />
+              </div>
+            );
+          })}
+        <a className={classes.logoContainer} href='http://www.accuweather.com/'>
+          <span className={classes.attribution}>Powered by</span>
+          <img
+            className={classes.logoImage}
+            src={
+              theme.palette.type === 'dark'
+                ? accuweatherLogoDark
+                : accuweatherLogo
+            }></img>
+        </a>
+      </div>
+    );
   }
 }
 
-export default withStyles(styles)(Favorites);
+export default withStyles(styles, { withTheme: true })(Favorites);
