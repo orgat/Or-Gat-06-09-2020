@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) Or Gat.
+Copyright (c) Or Gat
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
