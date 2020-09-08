@@ -8,8 +8,19 @@ class App extends Component {
     isDarkMode: false,
   };
 
+  componentDidMount() {
+    if (localStorage.getItem('darkMode')) {
+      const isDarkMode =
+        localStorage.getItem('darkMode') === 'true' ? true : false;
+      this.setState({ isDarkMode });
+    }
+  }
+
   toggleDarkMode = () => {
     this.setState((prevState) => {
+      // Set value in localstorage
+      localStorage.setItem('darkMode', !prevState.isDarkMode);
+
       return { isDarkMode: !prevState.isDarkMode };
     });
   };

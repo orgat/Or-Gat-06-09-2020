@@ -16,7 +16,7 @@ export default (theme) => ({
     },
   },
   weeklyWeatherContainer: {
-    marginTop: 50,
+    marginTop: 20,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -25,5 +25,29 @@ export default (theme) => ({
     '@media (max-width: 1380px)': {
       flexWrap: 'wrap',
     },
+  },
+  separator: {
+    width: '95%',
+    height: 2,
+    backgroundColor: '#ddd',
+    marginTop: 30,
+  },
+  weeklyTitleContainer: { marginTop: 15, width: '80%', textAlign: 'left' },
+  weeklyTitle: { fontStyle: 'italic', color: '#555' },
+  mainContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
+  weatherCardContainer: { marginTop: 20 },
+  autocompleteContainer: { marginTop: 15 },
+  circularProgress: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
 });

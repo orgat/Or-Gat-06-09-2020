@@ -2,6 +2,7 @@ import React, { Component, Fragment } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 
 import Home from '../Home/Home';
+import Favorites from '../Favorites/Favorites';
 import Header from '../Header/Header';
 import styles from './mainStyles';
 
@@ -27,7 +28,7 @@ class Main extends Component {
           isDarkMode={isDarkMode}
         />
         {0 === selectedTabIndex && <Home />}
-        {1 === selectedTabIndex && <div>Favorites</div>}
+        {1 === selectedTabIndex && <Favorites />}
       </Fragment>
     );
   }

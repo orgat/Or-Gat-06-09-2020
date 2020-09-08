@@ -9,6 +9,11 @@ export default (theme) => {
       backgroundColor: cardBgColor,
       color: '#fff',
       width: 210,
+      animation: '$slide 0.7s ease-out',
+      transition: 'top 0.5s ease-out 0s',
+      '&:hover': {
+        transform: 'translateY(-10px)',
+      },
       '@media (min-width: 1700px)': {
         width: 250,
       },
@@ -20,6 +25,17 @@ export default (theme) => {
       },
       '@media (max-width: 400px)': {
         width: '100%',
+      },
+    },
+
+    '@keyframes slide': {
+      '0%': {
+        transform: 'translateY(100px)',
+        opacity: 0,
+      },
+      '100%': {
+        transform: 'translateY(0%)',
+        opacity: 1,
       },
     },
     cardContent: {

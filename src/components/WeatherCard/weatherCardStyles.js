@@ -29,13 +29,12 @@ export default (theme) => {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
+      position: 'relative',
     },
     date: {
       fontSize: 17,
     },
-    city: {
-      position: 'relative',
-    },
+    city: {},
     textShadow: {
       textShadow: '1px 2px 2px #333',
     },
@@ -48,9 +47,8 @@ export default (theme) => {
     },
     favoriteIcon: {
       position: 'absolute',
-      top: '50%',
-      right: '-40%',
-      transform: 'translateY(-50%)',
+      top: '0',
+      right: '0',
     },
   };
 };
