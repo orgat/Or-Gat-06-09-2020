@@ -1,38 +1,34 @@
-import React, { Component } from 'react';
-import { withStyles } from '@material-ui/core/styles';
+import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import styles from './weatherCardSmallStyles.js';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  IconButton,
-  Typography,
-} from '@material-ui/core';
-import FavoriteIcon from '@material-ui/icons/Favorite';
+import { Card, CardContent, Typography } from '@material-ui/core';
 import { getDayName } from '../../helpers/dateFormatter';
 
-class WeatherCardSmall extends Component {
-  render() {
-    const { classes, forecast } = this.props;
+const useStyles = makeStyles(styles);
 
-    const images = importAll(
-      require.context('../../assets/img', false, /\.(png|jpe?g|svg)$/)
-    );
+const images = importAll(
+  require.context('../../assets/img', false, /\.(png|jpe?g|svg)$/)
+);
 
-    return (
-      <Card className={classes.cardRoot}>
-        <CardContent className={classes.cardContent}>
-          <Typography variant='h4'>{getDayName(forecast.Date)}</Typography>
-          <br></br>
-          <img src={images[`icon${forecast.Day.Icon}.png`]}></img>
-          <br></br>
-          <Typography variant='h3' className={classes.textShadow}>
-            {forecast.Temperature.Maximum.Value + '˚c'}
-          </Typography>
-        </CardContent>
-      </Card>
-    );
-  }
+function WeatherCardSmall(props) {
+  const classes = useStyles();
+  const { forecast } = props;
+
+  return (
+    <Card className={classes.cardRoot}>
+      <CardContent className={classes.cardContent}>
+        <Typography variant='h4'>{getDayName(forecast.Date)}</Typography>
+        <br></br>
+        <img
+          alt='weather-icon'
+          src={images[`icon${forecast.Day.Icon}.png`]}></img>
+        <br></br>
+        <Typography variant='h3' className={classes.textShadow}>
+          {forecast.Temperature.Maximum.Value + '˚c'}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 }
 
 function importAll(r) {
@@ -43,4 +39,4 @@ function importAll(r) {
   return images;
 }
 
-export default withStyles(styles)(WeatherCardSmall);
+export default WeatherCardSmall;

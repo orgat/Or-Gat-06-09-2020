@@ -1,19 +1,23 @@
-import React, { Component } from 'react';
-import { withStyles, withTheme } from '@material-ui/core/styles';
+import React, { useState, useEffect, useCallback } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import styles from './favoritesStyles';
 import API from '../../assets/api';
 import WeatherCard from '../WeatherCard/WeatherCard';
 
-class Favorites extends Component {
-  state = {
-    favoritesData: null,
-  };
+const useStyles = makeStyles(styles);
 
-  componentDidMount() {
-    this.loadFavorites();
-  }
+function Favorites(props) {
+  const { onFavoriteCardClick } = props;
 
-  loadFavorites = async () => {
+  const classes = useStyles();
+
+  const [favoritesData, setFavoritesData] = useState(null);
+
+  useEffect(() => {
+    loadFavorites();
+  }, []);
+
+  const loadFavorites = useCallback(async () => {
     if (localStorage.getItem('favorites')) {
       const favoriteLocations = JSON.parse(localStorage.getItem('favorites'));
       const favoritesData = [];
@@ -21,9 +25,7 @@ class Favorites extends Component {
       try {
         let promises = [];
         for (let i = 0; i < favoriteLocations.length; i++) {
-          promises[i] = this.fetchHourlyForecast(
-            favoriteLocations[i].locationKey
-          );
+          promises[i] = fetchHourlyForecast(favoriteLocations[i].locationKey);
         }
 
         const responses = await Promise.all(promises);
@@ -33,51 +35,47 @@ class Favorites extends Component {
           favoritesData.push({ location: favoriteLocations[i], data: json });
         }
 
-        this.setState({ favoritesData });
+        setFavoritesData(favoritesData);
       } catch (err) {
         console.error(err);
       }
     }
-  };
+  }, []);
 
-  fetchHourlyForecast = (locationKey) => {
+  const fetchHourlyForecast = useCallback((locationKey) => {
     const { hourlyForecastBaseUrl: baseUrl, key } = API;
 
     return fetch(`${baseUrl}/${locationKey}?apikey=${key}&metric=true`);
-  };
+  }, []);
 
-  handleFavoriteIconClick = (locationKey) => {
-    const { favoritesData } = this.state;
+  const handleFavoriteIconClick = useCallback(
+    (locationKey) => {
+      const newFavoritesData = favoritesData.filter((entry) => {
+        return entry.location.locationKey !== locationKey;
+      });
 
-    const newFavoritesData = favoritesData.filter((entry) => {
-      return entry.location.locationKey !== locationKey;
-    });
+      setFavoritesData(newFavoritesData);
+    },
+    [favoritesData]
+  );
 
-    this.setState({ favoritesData: newFavoritesData });
-  };
-
-  render() {
-    const { classes, onFavoriteCardClick } = this.props;
-    const { favoritesData } = this.state;
-
-    return (
-      <div className={classes.mainContainer}>
-        {favoritesData &&
-          favoritesData.map((entry, index) => {
-            return (
-              <div key={index} className={classes.weatherCardWrapper}>
-                <WeatherCard
-                  onFavoriteIconClick={this.handleFavoriteIconClick}
-                  locationData={entry.location}
-                  forecast={entry.data[0]}
-                  onWeatherCardClick={onFavoriteCardClick}
-                />
-              </div>
-            );
-          })}
-      </div>
-    );
-  }
+  return (
+    <div className={classes.mainContainer}>
+      {favoritesData &&
+        favoritesData.map((entry, index) => {
+          return (
+            <div key={index} className={classes.weatherCardWrapper}>
+              <WeatherCard
+                onFavoriteIconClick={handleFavoriteIconClick}
+                locationData={entry.location}
+                forecast={entry.data[0]}
+                onWeatherCardClick={onFavoriteCardClick}
+              />
+            </div>
+          );
+        })}
+    </div>
+  );
 }
 
-export default withStyles(styles)(Favorites);
+export default Favorites;

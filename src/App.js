@@ -1,41 +1,35 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Main from './components/Main/Main';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
-class App extends Component {
-  state = {
-    isDarkMode: false,
-  };
+function App() {
+  const [isDarkMode, setDarkMode] = useState(false);
 
-  componentDidMount() {
+  useEffect(() => {
     if (localStorage.getItem('darkMode')) {
       const isDarkMode =
         localStorage.getItem('darkMode') === 'true' ? true : false;
-      this.setState({ isDarkMode });
+
+      setDarkMode(isDarkMode);
     }
-  }
+  }, []);
 
-  toggleDarkMode = () => {
-    this.setState((prevState) => {
-      // Set value in localstorage
-      localStorage.setItem('darkMode', !prevState.isDarkMode);
+  const toggleDarkMode = useCallback(() => {
+    // Set value in localstorage
+    localStorage.setItem('darkMode', !isDarkMode);
 
-      return { isDarkMode: !prevState.isDarkMode };
-    });
-  };
+    setDarkMode((darkMode) => !darkMode);
+  }, [isDarkMode]);
 
-  render() {
-    const { isDarkMode } = this.state;
-    return (
-      <div className='app'>
-        <ThemeProvider theme={getTheme(isDarkMode)}>
-          <CssBaseline />
-          <Main toggleDarkMode={this.toggleDarkMode} isDarkMode={isDarkMode} />
-        </ThemeProvider>
-      </div>
-    );
-  }
+  return (
+    <div className='app'>
+      <ThemeProvider theme={getTheme(isDarkMode)}>
+        <CssBaseline />
+        <Main toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />
+      </ThemeProvider>
+    </div>
+  );
 }
 
 function getTheme(isDarkMode) {

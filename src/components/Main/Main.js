@@ -1,5 +1,11 @@
-import React, { Component, Fragment } from 'react';
-import { withStyles } from '@material-ui/core/styles';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  Fragment,
+} from 'react';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { Snackbar, CircularProgress } from '@material-ui/core';
 
 import Home from '../Home/Home';
@@ -11,32 +17,35 @@ import Alert from '@material-ui/lab/Alert';
 import accuweatherLogo from '../../assets/img/accuweather_logo.png';
 import accuweatherLogoDark from '../../assets/img/accuweather_logo_dark.png';
 
-class Main extends Component {
-  state = {
-    selectedTabIndex: 0,
-    autocompleteSuggestions: [],
-    hourlyForecast: null,
-    weeklyForecast: null,
-    selectedLocation: null,
-    errorToast: { isOpen: false, message: '' },
-  };
+const useStyles = makeStyles(styles);
 
-  componentDidMount() {
+function Main(props) {
+  const { toggleDarkMode, isDarkMode } = props;
+
+  const classes = useStyles();
+  const theme = useTheme();
+
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [autocompleteSuggestions, setAutocompleteSuggestions] = useState([]);
+  const [hourlyForecast, setHourlyForecast] = useState(null);
+  const [weeklyForecast, setWeeklyForecast] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [errorToast, setErrorToast] = useState({ isOpen: false, message: '' });
+  const typingTimeout = useRef(null);
+
+  useEffect(() => {
     // Check if user has already selected a location before
-    if (
-      localStorage.getItem('selectedLocation') &&
-      this.state.selectedLocation === null
-    ) {
+    if (localStorage.getItem('selectedLocation') && selectedLocation === null) {
       const selectedLocation = JSON.parse(
         localStorage.getItem('selectedLocation')
       );
 
-      this.getAllForecasts(selectedLocation.locationKey).then(() => {
-        this.setState({ selectedLocation });
+      getAllForecasts(selectedLocation.locationKey).then(() => {
+        setSelectedLocation(selectedLocation);
       });
     } else if (
       !localStorage.getItem('selectedLocation') &&
-      this.state.selectedLocation === null
+      selectedLocation === null
     ) {
       // Set location to the default of Tel-Aviv
       const selectedLocation = {
@@ -48,87 +57,14 @@ class Main extends Component {
         JSON.stringify(selectedLocation)
       );
 
-      this.getAllForecasts(selectedLocation.locationKey).then(() => {
+      getAllForecasts(selectedLocation.locationKey).then(() => {
         // Set selected location data in state only after fetching forecast
-        this.setState({ selectedLocation });
+        setSelectedLocation(selectedLocation);
       });
     }
-  }
+  }, []);
 
-  getAllForecasts = async (locationKey) => {
-    return new Promise((resolve, reject) => {
-      Promise.all([
-        this.fetchDailyForecast(locationKey),
-        this.fetchWeeklyForecast(locationKey),
-      ])
-        .then(() => {
-          resolve();
-        })
-        .catch((err) => {
-          console.error(err);
-
-          // Pop an error toast message
-          this.setState({
-            errorToast: {
-              isOpen: true,
-              message: 'Service is currently unavailable',
-            },
-          });
-          resolve();
-        });
-    });
-  };
-
-  handleInputChange = (e, newInputValue) => {
-    // Clear last timeout
-    clearTimeout(this.typingTimeout);
-
-    // Set a timeout to minimize http requests to API
-    this.typingTimeout = setTimeout(
-      () => this.fetchAutocompleteResults(newInputValue),
-      800
-    );
-  };
-
-  handleOptionSelection = async (e, newValue) => {
-    const {
-      Key: locationKey,
-      LocalizedName: cityName,
-      Country: { LocalizedName: countryName },
-    } = newValue;
-
-    const selectedLocation = {
-      name: `${cityName}, ${countryName}`,
-      locationKey,
-    };
-
-    // Save user selection in local storage
-    localStorage.setItem('selectedLocation', JSON.stringify(selectedLocation));
-
-    // Set selected location data in state only after fetching forecast
-    this.getAllForecasts(selectedLocation.locationKey).then(() => {
-      this.setState({ selectedLocation });
-    });
-  };
-
-  handleToastClose = () =>
-    this.setState({ errorToast: { isOpen: false, message: '' } });
-
-  fetchAutocompleteResults = async (query) => {
-    const { autocompleteBaseUrl: baseUrl, key } = API;
-
-    const response = await fetch(`${baseUrl}?apikey=${key}&q=${query}`);
-
-    if (!response.ok) {
-      throw Error();
-    }
-
-    const json = await response.json();
-
-    this.setState({ autocompleteSuggestions: json });
-  };
-
-  fetchDailyForecast = async (locationKey) => {
+  const fetchDailyForecast = useCallback(async (locationKey) => {
     const { hourlyForecastBaseUrl: baseUrl, key } = API;
 
     const response = await fetch(
@@ -141,10 +77,10 @@ class Main extends Component {
 
     const json = await response.json();
 
-    this.setState({ hourlyForecast: json[0] });
-  };
+    setHourlyForecast(json[0]);
+  }, []);
 
-  fetchWeeklyForecast = async (locationKey) => {
+  const fetchWeeklyForecast = useCallback(async (locationKey) => {
     try {
       const { weeklyForecastBaseUrl: baseUrl, key } = API;
 
@@ -158,86 +94,159 @@ class Main extends Component {
 
       const json = await response.json();
 
-      this.setState({ weeklyForecast: json });
+      setWeeklyForecast(json);
     } catch (err) {
       console.error(err);
 
-      this.setState({
-        errorToast: {
-          isOpen: true,
-          message: 'Service is currently unavailable',
-        },
+      setErrorToast({
+        isOpen: true,
+        message: 'Service is currently unavailable',
       });
     }
-  };
+  }, []);
 
-  handleTabChange = (e, newIndex) => {
-    this.setState({ selectedTabIndex: newIndex });
-  };
+  const getAllForecasts = useCallback(
+    async (locationKey) => {
+      return new Promise((resolve, reject) => {
+        Promise.all([
+          fetchDailyForecast(locationKey),
+          fetchWeeklyForecast(locationKey),
+        ])
+          .then(() => {
+            resolve();
+          })
+          .catch((err) => {
+            console.error(err);
 
-  handleFavoriteCardClick = (location) => {
-    this.getAllForecasts(location.locationKey).then(() => {
-      this.setState({ selectedLocation: location, selectedTabIndex: 0 });
-    });
-  };
+            // Pop an error toast message
+            setErrorToast({
+              isOpen: true,
+              message: 'Service is currently unavailable',
+            });
+            resolve();
+          });
+      });
+    },
+    [fetchDailyForecast, fetchWeeklyForecast, setErrorToast]
+  );
 
-  render() {
-    const { classes, toggleDarkMode, isDarkMode, theme } = this.props;
-    const {
-      selectedTabIndex,
-      errorToast,
-      hourlyForecast,
-      weeklyForecast,
-      selectedLocation,
-      autocompleteSuggestions,
-    } = this.state;
+  const handleInputChange = useCallback((e, newInputValue) => {
+    // Clear last timeout
+    clearTimeout(typingTimeout.current);
 
-    return (
-      <Fragment>
-        <Header
-          handleTabChange={this.handleTabChange}
-          selectedTabIndex={selectedTabIndex}
-          toggleDarkMode={toggleDarkMode}
-          isDarkMode={isDarkMode}
-        />
-        {0 === selectedTabIndex && (
-          <Home
-            handleOptionSelection={this.handleOptionSelection}
-            handleInputChange={this.handleInputChange}
-            autocompleteSuggestions={autocompleteSuggestions}
-            hourlyForecast={hourlyForecast}
-            weeklyForecast={weeklyForecast}
-            selectedLocation={selectedLocation}
-          />
-        )}
-        {1 === selectedTabIndex && (
-          <Favorites onFavoriteCardClick={this.handleFavoriteCardClick} />
-        )}
-
-        <Snackbar
-          open={errorToast.isOpen}
-          autoHideDuration={10000}
-          onClose={this.handleToastClose}>
-          <Alert severity='error'>{errorToast.message}</Alert>
-        </Snackbar>
-
-        {(!selectedLocation || !hourlyForecast || !weeklyForecast) && (
-          <CircularProgress className={classes.circularProgress} />
-        )}
-
-        <a className={classes.logoContainer} href='http://www.accuweather.com/'>
-          <span className={classes.attribution}>Powered by</span>
-          <img
-            className={classes.logoImage}
-            src={
-              theme.palette.type === 'dark'
-                ? accuweatherLogoDark
-                : accuweatherLogo
-            }></img>
-        </a>
-      </Fragment>
+    // Set a timeout to minimize http requests to API
+    typingTimeout.current = setTimeout(
+      () => fetchAutocompleteResults(newInputValue),
+      800
     );
-  }
+  }, []);
+
+  const handleOptionSelection = useCallback(
+    async (e, newValue) => {
+      const {
+        Key: locationKey,
+        LocalizedName: cityName,
+        Country: { LocalizedName: countryName },
+      } = newValue;
+
+      const selectedLocation = {
+        name: `${cityName}, ${countryName}`,
+        locationKey,
+      };
+
+      // Save user selection in local storage
+      localStorage.setItem(
+        'selectedLocation',
+        JSON.stringify(selectedLocation)
+      );
+
+      // Set selected location data in state only after fetching forecast
+      getAllForecasts(selectedLocation.locationKey).then(() => {
+        setSelectedLocation(selectedLocation);
+      });
+    },
+    [getAllForecasts]
+  );
+
+  const handleToastClose = useCallback(
+    () => setErrorToast({ isOpen: false, message: '' }),
+    []
+  );
+
+  const fetchAutocompleteResults = useCallback(async (query) => {
+    const { autocompleteBaseUrl: baseUrl, key } = API;
+
+    const response = await fetch(`${baseUrl}?apikey=${key}&q=${query}`);
+
+    if (!response.ok) {
+      throw Error();
+    }
+
+    const json = await response.json();
+
+    setAutocompleteSuggestions(json);
+  }, []);
+
+  const handleTabChange = useCallback((e, newIndex) => {
+    setSelectedTabIndex(newIndex);
+  }, []);
+
+  const handleFavoriteCardClick = useCallback(
+    (location) => {
+      getAllForecasts(location.locationKey).then(() => {
+        setSelectedLocation(location);
+        setSelectedTabIndex(0);
+      });
+    },
+    [getAllForecasts]
+  );
+
+  return (
+    <Fragment>
+      <Header
+        handleTabChange={handleTabChange}
+        selectedTabIndex={selectedTabIndex}
+        toggleDarkMode={toggleDarkMode}
+        isDarkMode={isDarkMode}
+      />
+      {0 === selectedTabIndex && hourlyForecast && weeklyForecast && (
+        <Home
+          handleOptionSelection={handleOptionSelection}
+          handleInputChange={handleInputChange}
+          autocompleteSuggestions={autocompleteSuggestions}
+          hourlyForecast={hourlyForecast}
+          weeklyForecast={weeklyForecast}
+          selectedLocation={selectedLocation}
+        />
+      )}
+      {1 === selectedTabIndex && (
+        <Favorites onFavoriteCardClick={handleFavoriteCardClick} />
+      )}
+
+      <Snackbar
+        open={errorToast.isOpen}
+        autoHideDuration={10000}
+        onClose={handleToastClose}>
+        <Alert severity='error'>{errorToast.message}</Alert>
+      </Snackbar>
+
+      {(!selectedLocation || !hourlyForecast || !weeklyForecast) && (
+        <CircularProgress className={classes.circularProgress} />
+      )}
+
+      <a className={classes.logoContainer} href='http://www.accuweather.com/'>
+        <span className={classes.attribution}>Powered by</span>
+        <img
+          alt='accuweather-logo'
+          className={classes.logoImage}
+          src={
+            theme.palette.type === 'dark'
+              ? accuweatherLogoDark
+              : accuweatherLogo
+          }></img>
+      </a>
+    </Fragment>
+  );
 }
 
-export default withStyles(styles, { withTheme: true })(Main);
+export default Main;
