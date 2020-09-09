@@ -1,12 +1,4 @@
 export default (theme) => ({
-  circularProgress: {
-    position: 'absolute',
-    top: '50%',
-    left: 0,
-    right: 0,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-  },
   logoContainer: {
     position: 'fixed',
     bottom: 10,

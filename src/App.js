@@ -1,32 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import Main from './components/Main/Main';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { useSelector } from 'react-redux';
 
 function App() {
-  const [isDarkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    if (localStorage.getItem('darkMode')) {
-      const isDarkMode =
-        localStorage.getItem('darkMode') === 'true' ? true : false;
-
-      setDarkMode(isDarkMode);
-    }
-  }, []);
-
-  const toggleDarkMode = useCallback(() => {
-    // Set value in localstorage
-    localStorage.setItem('darkMode', !isDarkMode);
-
-    setDarkMode((darkMode) => !darkMode);
-  }, [isDarkMode]);
+  const isDarkMode = useSelector((state) => state.isDarkMode);
 
   return (
     <div className='app'>
       <ThemeProvider theme={getTheme(isDarkMode)}>
         <CssBaseline />
-        <Main toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />
+        <Main />
       </ThemeProvider>
     </div>
   );

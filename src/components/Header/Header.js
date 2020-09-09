@@ -1,20 +1,28 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { AppBar, Tabs, Tab, Toolbar, Switch } from '@material-ui/core';
 import Brightness4Icon from '@material-ui/icons/Brightness4';
 import styles from './headerStyles';
+import types from '../../redux/types';
 
 const useStyles = makeStyles(styles);
 
 function Header(props) {
-  const {
-    handleTabChange,
-    selectedTabIndex,
-    toggleDarkMode,
-    isDarkMode,
-  } = props;
+  const { handleTabChange, selectedTabIndex } = props;
+
+  const isDarkMode = useSelector((state) => state.isDarkMode);
+  const dispatch = useDispatch();
 
   const classes = useStyles();
+
+  const toggleDarkMode = useCallback(() => {
+    const newIsDarkMode = !isDarkMode;
+
+    localStorage.setItem('darkMode', newIsDarkMode);
+
+    dispatch({ type: types.SET_DARK_MODE, payload: newIsDarkMode });
+  }, [dispatch, isDarkMode]);
 
   return (
     <AppBar position='static' className={classes.appBar}>

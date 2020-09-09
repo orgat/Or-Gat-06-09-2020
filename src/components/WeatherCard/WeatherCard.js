@@ -11,6 +11,8 @@ import {
 } from '@material-ui/core';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import { formatDate } from '../../helpers/dateFormatter';
+import { useSelector, useDispatch } from 'react-redux';
+import types from '../../redux/types';
 
 const useStyles = makeStyles(styles);
 
@@ -26,7 +28,11 @@ function WeatherCard(props) {
     forecast,
     onWeatherCardClick,
   } = props;
+
   const classes = useStyles();
+
+  const favoriteForecasts = useSelector((state) => state.favoriteForecasts);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // Check if location is in favorites
@@ -46,44 +52,35 @@ function WeatherCard(props) {
 
     let isFavorite = false;
 
-    if (localStorage.getItem('favorites')) {
-      const favorites = JSON.parse(localStorage.getItem('favorites'));
-      favorites.forEach((location) => {
-        if (location.locationKey === locationData.locationKey) {
-          isFavorite = true;
-        }
-      });
-    }
+    favoriteForecasts.forEach((location) => {
+      if (location.locationKey === locationData.locationKey) {
+        isFavorite = true;
+      }
+    });
 
     setIsFavorite(isFavorite);
-  }, [locationData.locationKey]);
+  }, [favoriteForecasts, locationData.locationKey]);
 
   const handleFavoriteIconClick = useCallback(
     (e) => {
       e.stopPropagation();
 
+      let newFavorites = [];
+
       // Remove from favorites if it already is
       if (isFavorite) {
-        if (localStorage.getItem('favorites')) {
-          const favorites = JSON.parse(localStorage.getItem('favorites'));
-
-          const newFavorites = favorites.filter(
-            (location) => location.locationKey !== locationData.locationKey
-          );
-
-          localStorage.setItem('favorites', JSON.stringify(newFavorites));
-        }
+        newFavorites = favoriteForecasts.filter(
+          (location) => location.locationKey !== locationData.locationKey
+        );
       } else {
         // Add to favorites
-        let favorites = [];
-
-        if (localStorage.getItem('favorites')) {
-          favorites = JSON.parse(localStorage.getItem('favorites'));
-        }
-
-        favorites.push(locationData);
-        localStorage.setItem('favorites', JSON.stringify(favorites));
+        newFavorites = favoriteForecasts.slice();
+        newFavorites.push(locationData);
       }
+
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+
+      dispatch({ type: types.SET_FAVORITE_FORECASTS, payload: newFavorites });
 
       setIsFavorite((isFavorite) => !isFavorite);
 
@@ -92,7 +89,7 @@ function WeatherCard(props) {
         onFavoriteIconClick(locationData.locationKey);
       }
     },
-    [onFavoriteIconClick, locationData, isFavorite]
+    [onFavoriteIconClick, locationData, isFavorite, dispatch, favoriteForecasts]
   );
 
   const handleCardClick = useCallback(() => {
@@ -101,8 +98,13 @@ function WeatherCard(props) {
     }
   }, [onWeatherCardClick, locationData]);
 
+  const cardStyle = props.clickable ? { cursor: 'pointer' } : null;
+
   return (
-    <Card className={classes.cardRoot} onClick={handleCardClick}>
+    <Card
+      className={classes.cardRoot}
+      onClick={handleCardClick}
+      style={cardStyle}>
       <CardHeader
         title={
           <div className={classes.headerTitle}>

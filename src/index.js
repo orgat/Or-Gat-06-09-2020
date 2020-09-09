@@ -1,12 +1,32 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import rootReducer from './redux/reducers/rootReducer';
+import {
+  getFavoritesOrEmptyArray,
+  getIsDarkMode,
+  getSelectedLocationOrDefault,
+} from './helpers/localStorageManager';
+
+const initialState = {
+  isDarkMode: getIsDarkMode(),
+  selectedLocation: getSelectedLocationOrDefault(),
+  favoriteForecasts: getFavoritesOrEmptyArray(),
+  selectedTabIndex: 0,
+};
+
+const store = createStore(rootReducer, initialState);
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );

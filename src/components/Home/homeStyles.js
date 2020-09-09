@@ -42,4 +42,12 @@ export default (theme) => ({
   },
   weatherCardContainer: { marginTop: 20 },
   autocompleteContainer: { marginTop: 15 },
+  circularProgress: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
 });
